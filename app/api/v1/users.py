@@ -83,3 +83,16 @@ def update_user_endpoint(user_id: int, user_in: UserUpdate, db: Session = Depend
     db.commit()
     db.refresh(user)
     return user
+
+# Delatar usuario - Lider e Admin
+@router.delete("/deletar/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+def deactivate_user_endpoint(user_id: int, db: Session = Depends(get_db), current_user = Depends(requireTipoAcesso("Administrador", "Líder"))):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    if current_user.tipoAcesso == "Líder" and current_user.equipeId != user.equipeId:
+        raise HTTPException(status_code=403, detail="Líder só pode desativar membros do seu time")
+    user.active = False
+    db.add(user)
+    db.commit()
+    return {"detail": "Usuário desativado"}

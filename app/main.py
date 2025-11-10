@@ -1,6 +1,7 @@
 from sqlalchemy import text
 from fastapi import FastAPI
 from app.core.database import Base, engine
+from app.api.v1 import auth, users, teams, items, transactions
 
 Base.metadata.create_all(bind=engine)
 
@@ -24,3 +25,6 @@ def test_db_connection():
                 return {"status": "Banco conectado com sucesso!"}
     except Exception as e:
         return {"status": "Falha ao conectar com o banco", "erro": str(e)}
+
+app.include_router(auth.router)
+app.include_router(users.router)
