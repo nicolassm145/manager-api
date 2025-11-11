@@ -13,6 +13,8 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     password: str
+    dataInicio: date
+    ativo: bool = True
 
 class UserUpdate(BaseModel):
     nomeCompleto: Optional[str] = None
@@ -23,6 +25,7 @@ class UserUpdate(BaseModel):
     cargoEquipe: Optional[str] = None
     equipeId: Optional[int] = None
     password: Optional[str] = None
+    ativo: Optional[bool] = None
 
 class UserOut(UserBase):
     id: int

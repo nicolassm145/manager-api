@@ -28,12 +28,12 @@ def requireTipoAcesso(*tiposPermitidos: str):
 
 def checkUserAccess(current_user, target_user):
     # Admin pode tudo
-    if current_user.role == "Administrador":
+    if current_user.tipoAcesso == "Administrador":
         return True
 
     # Líder e Membro só podem ver usuários da mesma equipe
-    if current_user.role in ["Líder", "Membro"]:
-        if current_user.team_id == target_user.team_id:
+    if current_user.tipoAcesso in ["Líder", "Membro"]:
+        if current_user.equipeId == target_user.equipeId:
             return True
         else:
             raise HTTPException(status_code=403, detail="Acesso negado a membros de outra equipe")
