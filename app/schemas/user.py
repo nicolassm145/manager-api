@@ -8,8 +8,8 @@ class UserBase(BaseModel):
     email: EmailStr
     curso: str
     tipoAcesso: str
-    cargoEquipe: str
-    equipeId: int
+    cargoEquipe: Optional[str] = None
+    equipeId: Optional[int] = None
 
 class UserCreate(UserBase):
     password: str
@@ -34,3 +34,8 @@ class UserOut(UserBase):
 
     class Config:
         from_attributes = True
+
+class LoginResponse(BaseModel):
+    access_token: str
+    token_type: str
+    user: UserOut
