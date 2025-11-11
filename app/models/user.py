@@ -18,3 +18,4 @@ class User(Base):
     ativo = Column(Boolean, nullable=False)
 
     equipe = relationship("Equipe", back_populates="membros")
+    transacoes = relationship("Transacao", back_populates="user")

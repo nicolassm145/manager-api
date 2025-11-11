@@ -30,4 +30,4 @@ class UserOut(UserBase):
     ativo: bool
 
     class Config:
-        orm_mode = True
+        from_attributes = True
