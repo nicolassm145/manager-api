@@ -7,7 +7,7 @@ from app.models.user import User
 from app.schemas.user import UserCreate, UserOut, UserBase, UserUpdate
 from app.services.user_service import create_user, get_user, list_users
 from app.api.deps import getCurrentUser, requireTipoAcesso, checkUserAccess
-from app.utils.security import hash_password
+from app.utils.security import hashPassword
 from sqlalchemy.exc import IntegrityError
 
 
@@ -49,7 +49,7 @@ def update_user_endpoint(user_id: int, user_in: UserUpdate, db: Session = Depend
     if current_user.tipoAcesso == "Administrador":
         for field, value in user_in.model_dump(exclude_unset=True).items():
             if(field == "password" and value):
-                user.hashed_password = hash_password(value)
+                user.hashed_password = hashPassword(value)
             elif field != "password":
                 setattr(user, field, value)
 
@@ -59,7 +59,7 @@ def update_user_endpoint(user_id: int, user_in: UserUpdate, db: Session = Depend
             raise HTTPException(status_code=403, detail="Líder não pode alterar usuários de outra equipe")
         for field, value in user_in.model_dump(exclude_unset=True).items():
             if field == "password" and value:
-                user.hashed_password = hash_password(value)
+                user.hashed_password = hashPassword(value)
             elif field != "password":
                 setattr(user, field, value)
 
@@ -72,7 +72,7 @@ def update_user_endpoint(user_id: int, user_in: UserUpdate, db: Session = Depend
             if field not in camposPermitidos:
                 continue
             if field == "password" and value:
-                user.hashed_password = hash_password(value)
+                user.hashed_password = hashPassword(value)
             elif field == "email":
                 user.email = value
     

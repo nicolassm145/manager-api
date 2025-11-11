@@ -5,7 +5,7 @@ from app.core.database import get_db
 from app.services.user_service import get_user_by_email
 from app.utils.security import verifyPassword, createAcessToken
 
-router = APIRouter(prefix="api/v1/auth", tags=["Autenticação"])
+router = APIRouter(prefix="/api/v1/auth", tags=["Autenticação"])
 
 @router.post("/login")
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):

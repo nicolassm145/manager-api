@@ -13,7 +13,7 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     tipoAcesso = Column(String, nullable=False)
     cargoEquipe = Column(String, nullable=True)
-    equipeId = Column(Integer, ForeignKey("equipe.id"))
+    equipeId = Column(Integer, ForeignKey("equipes.id"))
     dataInicio = Column(Date, nullable=False)
     ativo = Column(Boolean, nullable=False)
 

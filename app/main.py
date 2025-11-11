@@ -1,7 +1,12 @@
 from sqlalchemy import text
 from fastapi import FastAPI
 from app.core.database import Base, engine
-from app.api.v1 import auth, users, teams, items, transactions
+from app.api.v1 import auth, users
+
+from app.models.user import User
+from app.models.equipe import Equipe
+from app.models.item import Item
+from app.models.transacao import Transacao
 
 Base.metadata.create_all(bind=engine)
 
@@ -10,7 +15,6 @@ app = FastAPI(
     description="API para gerenciamento de equipes, membros, inventário e finanças",
     version="1.0.0"
 )
-
 
 @app.get("/")
 def root():

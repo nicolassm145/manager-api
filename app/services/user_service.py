@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from app.models.user import User
-from app.utils.security import hash_password
+from app.utils.security import hashPassword
 
 def create_user(db: Session, *, user_in):
     new_user = User(
@@ -9,7 +9,7 @@ def create_user(db: Session, *, user_in):
         matricula=user_in.matricula,
         email=user_in.email,
         curso=user_in.curso,
-        hashed_password=hash_password(user_in.password),
+        hashed_password=hashPassword(user_in.password),
         tipoAcesso=user_in.tipoAcesso,
         cargoEquipe=user_in.cargoEquipe,
         equipeId=user_in.equipeId,
