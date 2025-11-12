@@ -5,6 +5,7 @@ API RESTful para gerenciamento de equipes, membros, inventário e finanças. Con
 ## Descrição
 
 O League Manager é um sistema de gerenciamento que permite:
+
 - Autenticação e autorização baseada em roles (Administrador, Líder, Membro)
 - Gerenciamento de equipes e seus membros
 - Controle de inventário por equipe
@@ -20,12 +21,14 @@ O League Manager é um sistema de gerenciamento que permite:
 ## Instalação
 
 1. Clone o repositório:
+
 ```bash
 git clone https://github.com/nicolassm145/manager-api.git
 cd manager-api
 ```
 
 2. Instale as dependências com Poetry:
+
 ```bash
 poetry install
 ```
@@ -42,6 +45,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES=60
 ```
 
 4. Execute as migrações (o SQLAlchemy criará as tabelas automaticamente):
+
 ```bash
 poetry run python run.py
 ```
@@ -102,7 +106,7 @@ manager-api/
 │   ├── utils/
 │   │   └── security.py          # Funções de segurança (hash, JWT)
 │   └── main.py                  # Aplicação FastAPI principal
-├── .env                         # Variáveis de ambiente 
+├── .env                         # Variáveis de ambiente
 ├── pyproject.toml               # Configuração do Poetry
 ├── run.py                       # Script para iniciar o servidor
 ├── ENDPOINTS.md                 # Documentação detalhada dos endpoints
@@ -124,11 +128,13 @@ manager-api/
 ### Roles Disponíveis
 
 1. **Administrador**
+
    - Acesso completo ao sistema
    - Pode gerenciar todas as equipes e usuários
    - Pode criar, editar e deletar qualquer recurso
 
 2. **Líder**
+
    - Gerencia sua própria equipe
    - Pode criar e editar membros da sua equipe
    - Pode visualizar e editar dados da sua equipe
@@ -141,9 +147,11 @@ manager-api/
 ## Principais Endpoints
 
 ### Autenticação
+
 - `POST /api/v1/auth/login` - Fazer login
 
 ### Usuários
+
 - `POST /api/v1/users/criar` - Criar usuário
 - `GET /api/v1/users/listarTudo` - Listar todos os usuários
 - `GET /api/v1/users/listar/{user_id}` - Obter usuário por ID
@@ -151,13 +159,13 @@ manager-api/
 - `DELETE /api/v1/users/deletar/{user_id}` - Desativar usuário
 
 ### Equipes
+
 - `POST /api/v1/equipes/criar` - Criar equipe
 - `GET /api/v1/equipes/listAll` - Listar todas as equipes
 - `GET /api/v1/equipes/listar/{equipe_id}` - Obter equipe por ID
 - `PUT /api/v1/equipes/atualizar/{equipe_id}` - Atualizar equipe
 - `DELETE /api/v1/equipes/deletar/{equipe_id}` - Deletar equipe
 - `GET /api/v1/equipes/{equipe_id}/membros` - Listar membros da equipe
-
 
 ## Licença
 
