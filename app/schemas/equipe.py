@@ -8,7 +8,7 @@ class EquipeBase(BaseModel):
     descricao: str
 
 class EquipeCreate(EquipeBase):
-    pass
+    criadoEm: Optional[date] = None
 
 class EquipeUpdate(BaseModel):
     nome: Optional[str] = None

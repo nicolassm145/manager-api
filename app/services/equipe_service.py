@@ -3,8 +3,12 @@ from sqlalchemy.exc import IntegrityError
 from app.models.equipe import Equipe
 from datetime import date
 
-def create_equipe(db: Session, nome: str, descricao: str):
-    equipe = Equipe(nome=nome, descricao=descricao, criadoEm=date.today())
+def create_equipe(db: Session, nome: str, descricao: str, criado_em: date = None):
+    equipe = Equipe(
+        nome=nome, 
+        descricao=descricao, 
+        criadoEm=criado_em if criado_em else date.today()
+    )
     db.add(equipe)
     try:
         db.commit()

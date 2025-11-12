@@ -19,7 +19,12 @@ def create_equipe_endpoint(
     current_user: User = Depends(requireTipoAcesso("Administrador"))
 ):
     try:
-        equipe = create_equipe(db, nome=equipe_in.nome, descricao=equipe_in.descricao)
+        equipe = create_equipe(
+            db, 
+            nome=equipe_in.nome, 
+            descricao=equipe_in.descricao,
+            criado_em=equipe_in.criadoEm
+        )
         return equipe
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
