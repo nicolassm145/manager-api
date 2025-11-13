@@ -1,3 +1,4 @@
+from typing import Optional
 from pydantic import BaseModel
 
 class ItemBase(BaseModel):
@@ -10,6 +11,12 @@ class ItemBase(BaseModel):
 
 class ItemCreate(ItemBase):
     pass
+
+class ItemUpdate(BaseModel):
+    nome: Optional[str] = None
+    categoria: Optional[str] = None
+    quantidade: Optional[int] = None
+    localizacao: Optional[str] = None
 
 class ItemOut(ItemBase):
     id: int
