@@ -27,7 +27,8 @@ def create_item_endpoint(item_in: ItemCreate, db: Session = Depends(get_db), cur
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
-#Rota para listar todos os itens do inventário
+
+# Rota para listar todos os itens do inventário
 @router.get("/listar", response_model=list[ItemOut])
 def list_items(
     db: Session = Depends(get_db), 
@@ -49,6 +50,20 @@ def list_items(
         query = query.filter(Item.sku.ilike(f"%{sku}%"))
     
     return query.all()
+
+# Rota para buscar um item do inventário por ID
+@router.get("/listar/{item_id}", response_model=ItemOut)
+def get_item_endpoint(
+    item_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(getCurrentUser)
+):
+    item = db.query(Item).filter(Item.id == item_id).first()
+    if not item:
+        raise HTTPException(status_code=404, detail="Item não encontrado")
+    if current_user.tipoAcesso.lower() != "administrador" and current_user.equipeId != item.equipeId:
+        raise HTTPException(status_code=403, detail="Acesso negado")
+    return item
 
 #Rota para atualizar um item do inventário
 @router.put("/atualizar/{item_id}", response_model=ItemOut)
