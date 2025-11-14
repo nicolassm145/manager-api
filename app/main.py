@@ -2,7 +2,7 @@ from sqlalchemy import text
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.database import Base, engine
-from app.api.v1 import auth, users, equipes
+from app.api.v1 import auth, transacoes, users, equipes
 
 from app.models.user import User
 from app.models.equipe import Equipe
@@ -43,3 +43,5 @@ def test_db_connection():
 app.include_router(auth.router)
 app.include_router(users.router)
 app.include_router(equipes.router)
+
+app.include_router(transacoes.router)
