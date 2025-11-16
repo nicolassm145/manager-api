@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from sqlalchemy import func, extract
+from sqlalchemy import func, extract, case, or_
 from datetime import date, datetime
 from typing import List
 
@@ -11,21 +11,35 @@ from app.models.transacao import Transacao
 router = APIRouter(prefix="/api/v1/transacoes/dashboard", tags=["Dashboard Financeiro"])
 
 # Rota para obter resumo financeiro
+
 @router.get("/resumo")
 def resumo_financeiro(db: Session = Depends(get_db), current_user=Depends(getCurrentUser)):
-
-    query = db.query(
-        func.sum(
-            func.case((Transacao.tipo == "Entrada", Transacao.valor), else_=0)
-        ).label("total_entradas"),
-        func.sum(
-            func.case((Transacao.tipo == "Saída", Transacao.valor), else_=0)
-        ).label("total_saidas")
+    entrada_case = case(
+        (
+            func.lower(Transacao.tipo) == "entrada",
+            Transacao.valor
+        ),
+        else_=0
+    )
+    saida_case = case(
+        (
+            or_(
+                func.lower(Transacao.tipo) == "saida",
+                func.lower(Transacao.tipo) == "saída"
+            ),
+            Transacao.valor
+        ),
+        else_=0
     )
 
-    if current_user.tipoAcesso != "Administrador":
+    query = db.query(
+        func.sum(entrada_case).label("total_entradas"),
+        func.sum(saida_case).label("total_saidas")
+    )
+
+    if current_user.tipoAcesso.lower() != "administrador":
         query = query.filter(Transacao.equipeId == current_user.equipeId)
-    
+
     resultado = query.first()
 
     total_entradas = float(resultado.total_entradas or 0)
@@ -44,14 +58,27 @@ def historico_mensal(
     db: Session = Depends(get_db),
     current_user = Depends(getCurrentUser)
 ):
+    entrada_case = case(
+        (
+            func.lower(Transacao.tipo) == "entrada",
+            Transacao.valor
+        ),
+        else_=0
+    )
+    saida_case = case(
+        (
+            or_(
+                func.lower(Transacao.tipo) == "saida",
+                func.lower(Transacao.tipo) == "saída"
+            ),
+            Transacao.valor
+        ),
+        else_=0
+    )
     query = db.query(
         extract('month', Transacao.data).label("mes"),
-        func.sum(
-            func.case((Transacao.tipo == "Entrada", Transacao.valor), else_=0)
-        ).label("entradas"),
-        func.sum(
-            func.case((Transacao.tipo == "Saída", Transacao.valor), else_=0)
-        ).label("saidas")
+        func.sum(entrada_case).label("entradas"),
+        func.sum(saida_case).label("saidas")
     ).filter(extract('year', Transacao.data) == ano)
 
     if current_user.tipoAcesso != "Administrador":
