@@ -7,7 +7,7 @@ class ItemBase(BaseModel):
     categoria: str
     quantidade: int
     localizacao: str
-    equipeId: int
+    equipeId: Optional[int] = None
 
 class ItemCreate(ItemBase):
     pass
