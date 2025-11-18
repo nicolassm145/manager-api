@@ -78,13 +78,17 @@ def update_transacao_endpoint(id: int, data: TransacaoUpdate, db=Depends(get_db)
 # Rota para deletar uma transação
 @router.delete("/deletar/{id}", status_code=200)
 def delete_transacao_endpoint(id: int, db=Depends(get_db), current_user=Depends(getCurrentUser)):
-
-    if current_user.tipoAcesso != "Administrador":
-        raise HTTPException(403, "Somente administradores podem deletar transações")
-
     transacao = db.query(Transacao).filter(Transacao.id == id).first()
     if not transacao:
         raise HTTPException(404, "Transação não encontrada")
+
+    if current_user.tipoAcesso == "Administrador":
+        pass  # Admin pode deletar qualquer transação
+    elif current_user.tipoAcesso == "Líder":
+        if current_user.equipeId != transacao.equipeId:
+            raise HTTPException(403, "Líder só pode deletar transações da própria equipe")
+    else:
+        raise HTTPException(403, "Somente administradores ou líderes podem deletar transações")
 
     delete_transacao(db, transacao)
     return {"detail": "Transação removida com sucesso"}
