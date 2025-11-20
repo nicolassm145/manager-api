@@ -128,3 +128,20 @@ def download_file(file_id: str, db: Session = Depends(get_db), current_user = De
             "Content-Disposition": f"attachment; filename={file_id}"
         }
     )
+
+#Endpoint para deletar arquivo
+@router.delete('/delete/{file_id}')
+def delete_file(file_id: str, db: Session = Depends(get_db), current_user = Depends(getCurrentUser)):
+    integration = db.query(EquipeDriveIntegration).filter(EquipeDriveIntegration.equipeId == current_user.equipeId).first()
+    if not integration:
+        raise HTTPException(status_code=404, detail='Integração não encontrada')
+
+    creds = refresh_and_get_credentials(db, integration)
+    drive = build_drive_service_from_creds(creds)
+
+    try:
+        drive.files().delete(fileId=file_id).execute()
+    except Exception:
+        raise HTTPException(status_code=404, detail="Arquivo não encontrado ou não pode ser deletado")
+    
+    return {"detail": "Arquivo deletado com sucesso"}
