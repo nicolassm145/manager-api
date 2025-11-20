@@ -75,12 +75,17 @@ def list_files(db: Session = Depends(get_db), current_user = Depends(getCurrentU
     drive = build_drive_service_from_creds(creds)
 
     query = f"'{integration.driveFolderId}' in parents and trashed = false"
-    results = drive.files().list(q=query, fields='files(id,name,mimeType,size,modifiedTime)').execute()
+    results = drive.files().list(q=query, fields='files(id,name,mimeType,size,modifiedTime,webViewLink)').execute()
     return results.get('files', [])
 
 #Endpoint para fazer upload de arquivo na pasta do Google Drive da equipe - Apenas Lider
 @router.post('/upload')
 async def upload_file(equipeId: int, file: UploadFile = File(...), db: Session = Depends(get_db), current_user = Depends(getCurrentUser)):
+    # Log para debug: checar se arquivo chegou
+    if not file:
+        raise HTTPException(status_code=400, detail='Arquivo não enviado (campo file ausente)')
+    if not equipeId:
+        raise HTTPException(status_code=400, detail='equipeId não enviado')
     integration = db.query(EquipeDriveIntegration).filter(EquipeDriveIntegration.equipeId == equipeId).first()
     if not integration:
         raise HTTPException(status_code=404, detail='Integração não encontrada')
