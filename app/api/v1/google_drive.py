@@ -24,10 +24,13 @@ def authorize(equipeId: int, db: Session = Depends(get_db), current_user = Depen
     return {"url": url}
 
 #Callback endpoint após autorização do Google Drive
+
+from fastapi.responses import RedirectResponse
+from app.core.config import settings
+
 @router.get('/callback')
 def oauth_callback(code: str, state: str, db: Session = Depends(get_db)):
-    equipeId = int(state)   # ← Agora funciona
-
+    equipeId = int(state)
     equipe = db.query(Equipe).filter(Equipe.id == equipeId).first()
     if not equipe:
         raise HTTPException(404, 'Equipe não encontrada')
@@ -39,14 +42,12 @@ def oauth_callback(code: str, state: str, db: Session = Depends(get_db)):
         'name': f"LeagueManager_{equipe.nome}",
         'mimeType': 'application/vnd.google-apps.folder'
     }
-
     folder = drive.files().create(body=folder_metadata, fields='id').execute()
 
     from app.models.equipe_drive import EquipeDriveIntegration
     integration = db.query(EquipeDriveIntegration).filter(
         EquipeDriveIntegration.equipeId == equipeId
     ).first()
-
     if not integration:
         integration = EquipeDriveIntegration(equipeId=equipeId)
 
@@ -59,7 +60,9 @@ def oauth_callback(code: str, state: str, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(integration)
 
-    return {"detail": "Drive conectado com sucesso", "folderId": folder['id']}
+    # Redireciona para o frontend após sucesso
+    redirect_url = f"{settings.FRONTEND_URL}/files"
+    return RedirectResponse(url=redirect_url, status_code=302)
 
 # ENdopoint para listar arquivos na pasta do Google Drive da equipe
 @router.get('/files')

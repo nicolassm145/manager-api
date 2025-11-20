@@ -17,6 +17,7 @@ class Setting(BaseSettings):
     GOOGLE_SCOPES: str = "https://www.googleapis.com/auth/drive.file"
 
     FERNET_KEY: str
+    FRONTEND_URL: str
     
     model_config = SettingsConfigDict(env_file=".env")
 

@@ -24,6 +24,7 @@ dependencies = [
     "passlib[bcrypt] (==1.7.4)",
     "google-api-python-client (>=2.187.0,<3.0.0)",
     "google-auth-oauthlib (>=1.2.3,<2.0.0)",
+    "protobuf (>=6.33.1,<7.0.0)",
 ]
 
 
