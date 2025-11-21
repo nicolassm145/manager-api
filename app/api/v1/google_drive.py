@@ -66,17 +66,21 @@ def oauth_callback(code: str, state: str, db: Session = Depends(get_db)):
 
 # ENdopoint para listar arquivos na pasta do Google Drive da equipe
 @router.get('/files')
-def list_files(db: Session = Depends(get_db), current_user = Depends(getCurrentUser)):
+def list_files(folderId: str = None, db: Session = Depends(get_db), current_user = Depends(getCurrentUser)):
     integration = db.query(EquipeDriveIntegration).filter(EquipeDriveIntegration.equipeId == current_user.equipeId).first()
     if not integration:
         raise HTTPException(status_code=404, detail='Equipe não possui Drive vinculado')
-    
     creds = refresh_and_get_credentials(db, integration)
     drive = build_drive_service_from_creds(creds)
-
-    query = f"'{integration.driveFolderId}' in parents and trashed = false"
-    results = drive.files().list(q=query, fields='files(id,name,mimeType,size,modifiedTime,webViewLink)').execute()
-    return results.get('files', [])
+    # Se não passar folderId, usa a raiz da equipe
+    parent_id = folderId or integration.driveFolderId
+    query = f"'{parent_id}' in parents and trashed = false"
+    results = drive.files().list(q=query, fields='files(id,name,mimeType,size,modifiedTime,webViewLink,thumbnailLink)').execute()
+    files = results.get('files', [])
+    for f in files:
+        if 'thumbnailLink' not in f:
+            f['thumbnailLink'] = None
+    return files
 
 #Endpoint para fazer upload de arquivo na pasta do Google Drive da equipe - Apenas Lider
 @router.post('/upload')
