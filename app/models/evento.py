@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, boolean, Text
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Boolean, Text
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.core.database import Base
@@ -43,6 +43,6 @@ class EventoTarefa(Base):
     membroId = Column(Integer, ForeignKey('users.id'), nullable=False)
 
     descricao = Column(Text, nullable=False)
-    concluido = Column(boolean, default=False)
+    concluido = Column(Boolean, default=False)
 
     updatedAt = Column(DateTime, onupdate=datetime.utcnow)
