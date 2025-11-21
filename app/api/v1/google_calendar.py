@@ -20,7 +20,7 @@ from app.services.google_calendar_service import (
 
 router = APIRouter(prefix="/api/v1/google_calendar", tags=["Google Calendar"])
 
-@router.post("/eventos")
+@router.post("/criar-evento")
 def create_calendar_event(evento: EventoCreate, db: Session = Depends(get_db), current_user=Depends(getCurrentUser)):
     
     if current_user.tipoAcesso.lower() != "líder":
@@ -64,7 +64,7 @@ def create_calendar_event(evento: EventoCreate, db: Session = Depends(get_db), c
     return evento_db
 
 
-@router.patch("/events/{event_id}")
+@router.patch("/atualizar-evento/{event_id}")
 def update_calendar_event(
     event_id: int,
     data: EventoUpdate,
@@ -107,7 +107,7 @@ def update_calendar_event(
     return updated
 
 
-@router.delete("/events/{event_id}")
+@router.delete("/deletar-evento/{event_id}")
 def delete_calendar_event(
     event_id: int,
     db: Session = Depends(get_db),
