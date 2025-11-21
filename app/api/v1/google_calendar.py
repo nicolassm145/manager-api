@@ -18,7 +18,7 @@ from app.services.google_calendar_service import (
     delete_event
 )
 
-router = APIRouter(prefix="/api/v1/google_calendar", tags=["Google Calendar"])
+router = APIRouter(prefix="/api/v1/google-calendar", tags=["Google Calendar"])
 
 @router.post("/criar-evento")
 def create_calendar_event(evento: EventoCreate, db: Session = Depends(get_db), current_user=Depends(getCurrentUser)):
@@ -43,11 +43,11 @@ def create_calendar_event(evento: EventoCreate, db: Session = Depends(get_db), c
         "summary": evento.titulo,
         "description": evento.descricao,
         "start": {
-            "dateTime": evento.startDateTime.isoformat(),
+            "dateTime": evento.startDatetime.isoformat(),
             "timeZone": "America/Sao_Paulo"
         },
         "end": {
-            "dateTime": evento.endDateTime.isoformat(),
+            "dateTime": evento.endDatetime.isoformat(),
             "timeZone": "America/Sao_Paulo"
         }
     }
