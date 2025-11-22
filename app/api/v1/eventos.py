@@ -22,18 +22,24 @@ router = APIRouter(prefix="/api/v1/eventos", tags=["Eventos"])
 
 #PARTICIPANTES
 
-@router.get("/{eventoId}/participantes")
-def get_participantes(eventoId: int, db: Session = Depends(get_db), current_user=Depends(getCurrentUser)):
-    return list_participantes(db, eventoId)
+@router.get("/{googleEventId}/participantes")
+def get_participantes(googleEventId: str, db: Session = Depends(get_db), current_user=Depends(getCurrentUser)):
+    evento = db.query(Evento).filter(Evento.googleEventId == googleEventId).first()
+    if not evento:
+        raise HTTPException(404, "Evento não encontrado")
+    return list_participantes(db, evento.id)
 
-@router.post("/{eventoId}/participar")
+@router.post("/{googleEventId}/participar")
 def participar_evento(
-    eventoId: int,
+    googleEventId: str,
     data: EventoParticipanteBase,
     db: Session = Depends(get_db),
     current_user=Depends(getCurrentUser)
 ):
-    return add_participante(db, eventoId, current_user.id, data.status)
+    evento = db.query(Evento).filter(Evento.googleEventId == googleEventId).first()
+    if not evento:
+        raise HTTPException(404, "Evento não encontrado")
+    return add_participante(db, evento.id, data.membroId, data.status)
 
 @router.patch("/participantes/{participanteId}")
 def update_participante_route(
@@ -46,19 +52,25 @@ def update_participante_route(
 
 
 #TAREFAS
-@router.get("/{eventoId}/tarefas")
-def get_tarefas(eventoId: int, db: Session = Depends(get_db), current_user=Depends(getCurrentUser)):
-    return list_tarefas(db, eventoId)
+@router.get("/{googleEventId}/tarefas")
+def get_tarefas(googleEventId: str, db: Session = Depends(get_db), current_user=Depends(getCurrentUser)):
+    evento = db.query(Evento).filter(Evento.googleEventId == googleEventId).first()
+    if not evento:
+        raise HTTPException(404, "Evento não encontrado")
+    return list_tarefas(db, evento.id)
 
 
-@router.post("/{eventoId}/tarefas")
+@router.post("/{googleEventId}/tarefas")
 def add_tarefa_route(
-    eventoId: int,
+    googleEventId: str,
     data: EventoTarefaBase,
     db: Session = Depends(get_db),
     current_user=Depends(getCurrentUser)
 ):
-    return add_tarefa(db, eventoId, data.membroId, data.descricao)
+    evento = db.query(Evento).filter(Evento.googleEventId == googleEventId).first()
+    if not evento:
+        raise HTTPException(404, "Evento não encontrado")
+    return add_tarefa(db, evento.id, data.membroId, data.descricao)
 
 
 @router.patch("/tarefas/{tarefaId}")
@@ -68,4 +80,4 @@ def update_tarefa_route(
     db: Session = Depends(get_db),
     current_user=Depends(getCurrentUser)
 ):
-    return update_tarefa(db, tarefaId, data.descricao, data.concluida)
+    return update_tarefa(db, tarefaId, data.descricao, data.concluido)

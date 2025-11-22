@@ -96,7 +96,7 @@ def update_tarefa(db: Session, tarefaId: int, descricao: str, concluida: bool):
         tarefa.descricao = descricao
 
     if concluida is not None:
-        tarefa.concluida = concluida
+        tarefa.concluido = concluida
 
     tarefa.updatedAt = datetime.utcnow()
 

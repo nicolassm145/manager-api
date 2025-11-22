@@ -64,9 +64,10 @@ def create_calendar_event(evento: EventoCreate, db: Session = Depends(get_db), c
     return evento_db
 
 
-@router.patch("/atualizar-evento/{event_id}")
+
+@router.patch("/atualizar-evento/{googleEventId}")
 def update_calendar_event(
-    event_id: int,
+    googleEventId: str,
     data: EventoUpdate,
     db: Session = Depends(get_db),
     current_user=Depends(getCurrentUser)
@@ -74,7 +75,7 @@ def update_calendar_event(
     if current_user.tipoAcesso.lower() != "líder":
         raise HTTPException(403, "Somente líderes podem editar eventos")
 
-    evento = db.query(Evento).filter(Evento.id == event_id).first()
+    evento = db.query(Evento).filter(Evento.googleEventId == googleEventId).first()
     if not evento:
         raise HTTPException(404, "Evento não encontrado")
 
@@ -86,7 +87,7 @@ def update_calendar_event(
     calendar_service = build_calendar_service_from_creds(creds)
 
     # Atualiza no banco
-    updated = update_evento(db, event_id, data)
+    updated = update_evento(db, evento.id, data)
 
     # Atualiza no Google
     google_data = {}
@@ -95,28 +96,31 @@ def update_calendar_event(
         google_data["summary"] = data.titulo
     if data.descricao:
         google_data["description"] = data.descricao
-    if data.startDateTime:
-        google_data.setdefault("start", {})["dateTime"] = data.startDateTime.isoformat()
+    if data.startDatetime:
+        google_data.setdefault("start", {})["dateTime"] = data.startDatetime.isoformat()
         google_data["start"]["timeZone"] = "America/Sao_Paulo"
-    if data.endDateTime:
-        google_data.setdefault("end", {})["dateTime"] = data.endDateTime.isoformat()
+    if data.endDatetime:
+        google_data.setdefault("end", {})["dateTime"] = data.endDatetime.isoformat()
         google_data["end"]["timeZone"] = "America/Sao_Paulo"
 
-    update_event(calendar_service, evento.googleEventId, google_data)
+    equipe = db.query(Equipe).filter(Equipe.id == evento.equipeId).first()
+    calendar_id = get_or_create_team_calendar(None, calendar_service, equipe.nome)
+    update_event(calendar_service, calendar_id, googleEventId, google_data)
 
     return updated
 
 
-@router.delete("/deletar-evento/{event_id}")
+
+@router.delete("/deletar-evento/{googleEventId}")
 def delete_calendar_event(
-    event_id: int,
+    googleEventId: str,
     db: Session = Depends(get_db),
     current_user=Depends(getCurrentUser)
 ):
     if current_user.tipoAcesso.lower() != "líder":
         raise HTTPException(403, "Somente líderes podem deletar eventos")
 
-    evento = db.query(Evento).filter(Evento.id == event_id).first()
+    evento = db.query(Evento).filter(Evento.googleEventId == googleEventId).first()
     if not evento:
         raise HTTPException(404, "Evento não encontrado")
 
@@ -127,8 +131,26 @@ def delete_calendar_event(
     creds = refresh_and_get_credentials(db, integration)
     calendar_service = build_calendar_service_from_creds(creds)
 
-    delete_event(calendar_service, evento.googleEventId)
-    delete_evento(db, event_id)
+    equipe = db.query(Equipe).filter(Equipe.id == evento.equipeId).first()
+    calendar_id = get_or_create_team_calendar(None, calendar_service, equipe.nome)
+    delete_event(calendar_service, calendar_id, googleEventId)
+    delete_evento(db, evento.id)
 
     return {"detail": "Evento deletado com sucesso"}
 
+@router.get("/listar-evento")
+def listar_eventos_google_calendar(equipeId: int, db: Session = Depends(get_db), current_user=Depends(getCurrentUser)):
+    integration = db.query(EquipeDriveIntegration).filter(
+        EquipeDriveIntegration.equipeId == equipeId
+    ).first()
+    if not integration:
+        raise HTTPException(400, "Integração com Google não encontrada para a equipe.")
+    creds = refresh_and_get_credentials(db, integration)
+    calendar_service = build_calendar_service_from_creds(creds)
+    equipe = db.query(Equipe).filter(Equipe.id == equipeId).first()
+    if not equipe:
+        raise HTTPException(404, "Equipe não encontrada.")
+    calendar_id = get_or_create_team_calendar(None, calendar_service, equipe.nome)
+    events_result = calendar_service.events().list(calendarId=calendar_id).execute()
+    events = events_result.get('items', [])
+    return {"eventos": events}
