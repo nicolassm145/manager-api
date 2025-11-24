@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, File, HTTPException, Response, UploadFile, status, Request
+from fastapi import APIRouter, Depends, File, HTTPException, Response, UploadFile, status, Request, Body
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.api.deps import getCurrentUser
@@ -84,7 +84,13 @@ def list_files(folderId: str = None, db: Session = Depends(get_db), current_user
 
 #Endpoint para fazer upload de arquivo na pasta do Google Drive da equipe - Apenas Lider
 @router.post('/upload')
-async def upload_file(equipeId: int, file: UploadFile = File(...), db: Session = Depends(get_db), current_user = Depends(getCurrentUser)):
+async def upload_file(
+    equipeId: int,
+    parentFolderId: str = None,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user = Depends(getCurrentUser)
+):
     # Log para debug: checar se arquivo chegou
     if not file:
         raise HTTPException(status_code=400, detail='Arquivo não enviado (campo file ausente)')
@@ -104,14 +110,28 @@ async def upload_file(equipeId: int, file: UploadFile = File(...), db: Session =
     from googleapiclient.http import MediaInMemoryUpload
     media = MediaInMemoryUpload(content, mimetype=file.content_type)
 
-    body = { 'name': file.filename, 'parents': [integration.driveFolderId] }
-    uploaded = drive.files().create(body=body, media_body=media, fields='id').execute()
+    parents = [parentFolderId] if parentFolderId else ([integration.driveFolderId] if integration.driveFolderId else [])
+    body = { 'name': file.filename, 'parents': parents }
+    uploaded = drive.files().create(body=body, media_body=media, fields='id, name, mimeType').execute()
+    return { 'fileId': uploaded.get('id'), 'name': uploaded.get('name'), 'mimeType': uploaded.get('mimeType') }
 
+# Endpoint para renomear arquivo
+@router.patch('/rename-file')
+def rename_file(equipeId: int, fileId: str, newName: str, db: Session = Depends(get_db), current_user=Depends(getCurrentUser)):
+    integration = db.query(EquipeDriveIntegration).filter(EquipeDriveIntegration.equipeId == equipeId).first()
+    if not integration:
+        raise HTTPException(404, 'Integração Google Drive não encontrada para a equipe.')
+    creds = refresh_and_get_credentials(db, integration)
+    drive = build_drive_service_from_creds(creds)
+    updated = drive.files().update(fileId=fileId, body={'name': newName}, fields='id, name').execute()
+    return {'id': updated['id'], 'name': updated['name']}
 
-    return { 'fileId': uploaded.get('id') }
-
+# Endpoint para download de arquivo
 @router.get('/download/{file_id}')
-def download_file(file_id: str, db: Session = Depends(get_db), current_user = Depends(getCurrentUser)):
+def download_file(
+    file_id: str, 
+    db: Session = Depends(get_db), 
+    current_user = Depends(getCurrentUser)):
     integration = db.query(EquipeDriveIntegration).filter(EquipeDriveIntegration.equipeId == current_user.equipeId).first()
     if not integration:
         raise HTTPException(status_code=404, detail='Integração não encontrada')
@@ -148,4 +168,25 @@ def delete_file(file_id: str, db: Session = Depends(get_db), current_user = Depe
     except Exception:
         raise HTTPException(status_code=404, detail="Arquivo não encontrado ou não pode ser deletado")
     
-    return {"detail": "Arquivo deletado com sucesso"}
+    
+
+@router.post('/create-folder')
+def create_folder(equipeId: int, body: dict = Body(...), db: Session = Depends(get_db), current_user=Depends(getCurrentUser)):
+    integration = db.query(EquipeDriveIntegration).filter(EquipeDriveIntegration.equipeId == equipeId).first()
+    if not integration:
+        raise HTTPException(404, 'Integração Google Drive não encontrada para a equipe.')
+    creds = refresh_and_get_credentials(db, integration)
+    drive = build_drive_service_from_creds(creds)
+    equipe = db.query(Equipe).filter(Equipe.id == equipeId).first()
+    if not equipe:
+        raise HTTPException(404, 'Equipe não encontrada')
+    folderName = body.get('name')
+    parentFolderId = body.get('parentFolderId')
+    parents = [parentFolderId] if parentFolderId else ([integration.driveFolderId] if integration.driveFolderId else [])
+    folder_metadata = {
+        'name': folderName if folderName is not None else f"LeagueManager_{equipe.nome}_folder_{datetime.now().strftime('%Y%m%d%H%M%S')}",
+        'mimeType': 'application/vnd.google-apps.folder',
+        'parents': parents
+    }
+    folder = drive.files().create(body=folder_metadata, fields='id, name').execute()
+    return {'id': folder['id'], 'name': folder['name']}
