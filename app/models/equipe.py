@@ -13,3 +13,4 @@ class Equipe(Base):
     membros = relationship("User", back_populates="equipe")
     itens = relationship("Item", back_populates="equipe")
     transacoes = relationship("Transacao", back_populates="equipe")
+    eventos = relationship("Evento", back_populates="equipe", cascade="all, delete")
