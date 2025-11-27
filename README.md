@@ -1,172 +1,178 @@
 # League Manager API
 
-API RESTful para gerenciamento de equipes, membros, inventário e finanças. Construída com FastAPI, SQLAlchemy e PostgreSQL.
+![Python](https://img.shields.io/badge/Python-3.13%2B-blue)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.109.0%2B-009688)
+![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-2.0%2B-red)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15%2B-336791)
+![License](https://img.shields.io/badge/License-MIT-green)
 
-## Descrição
+API RESTful robusta para gerenciamento de equipes, membros, inventário e finanças. Desenvolvida com foco em performance e escalabilidade utilizando FastAPI, SQLAlchemy e PostgreSQL.
 
-O League Manager é um sistema de gerenciamento que permite:
+## 📋 Descrição
 
-- Autenticação e autorização baseada em roles (Administrador, Líder, Membro)
-- Gerenciamento de equipes e seus membros
-- Controle de inventário por equipe
-- Gerenciamento de transações financeiras
-- Sistema de permissões hierárquico
+O **League Manager** é uma solução completa para administração de guildas, clãs ou grupos de jogos, oferecendo:
 
-## Requisitos
+- **Segurança**: Autenticação JWT e controle de acesso baseado em roles (RBAC).
+- **Organização**: Gestão hierárquica de equipes e membros.
+- **Recursos**: Controle de inventário e itens por equipe.
+- **Finanças**: Registro e histórico de transações financeiras.
 
-- Python 3.13 ou superior
-- PostgreSQL
-- Poetry (gerenciador de dependências)
+## ✨ Funcionalidades
 
-## Instalação
+- **Autenticação & Autorização**:
+    - Login seguro com JWT.
+    - Níveis de acesso: Administrador, Líder e Membro.
+- **Gestão de Equipes**:
+    - Criação e edição de equipes.
+    - Atribuição de líderes e membros.
+- **Inventário**:
+    - Adição e remoção de itens.
+    - Visualização de inventário por equipe.
+- **Financeiro**:
+    - Registro de entradas e saídas.
+    - Histórico de transações.
+- **Integração Google**:
+    - **Calendar**: Criação automática de calendários de equipe e agendamento de eventos.
+    - **Drive**: Organização de arquivos e documentos por equipe.
 
-1. Clone o repositório:
+## 🛠️ Requisitos
+
+- **Python** 3.13 ou superior
+- **PostgreSQL** (Banco de dados)
+- **Poetry** (Gerenciador de dependências)
+
+## 🚀 Instalação
+
+1. **Clone o repositório**
 
 ```bash
 git clone https://github.com/nicolassm145/manager-api.git
 cd manager-api
 ```
 
-2. Instale as dependências com Poetry:
+2. **Instale as dependências**
 
 ```bash
 poetry install
 ```
 
-3. Configure as variáveis de ambiente:
+3. **Configure o ambiente**
 
-Crie um arquivo `.env` na raiz do projeto com as seguintes variáveis:
+Copie o arquivo de exemplo e configure suas variáveis:
+
+```bash
+cp .env_example .env
+```
+
+Edite o arquivo `.env` com suas configurações do PostgreSQL, chaves de segurança e credenciais do Google:
 
 ```env
 DATABASE_URL=postgresql://usuario:senha@localhost:5432/nome_do_banco
-SECRET_KEY=sua_chave_secreta_aqui
+SECRET_KEY=sua_chave_secreta_super_segura
 JWT_ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=60
+
+# Google Integration
+GOOGLE_CLIENT_ID=seu_client_id
+GOOGLE_CLIENT_SECRET=seu_client_secret
+GOOGLE_OAUTH_REDIRECT_URI=http://localhost:8000/api/v1/google-drive/callback
+GOOGLE_SCOPES=https://www.googleapis.com/auth/drive.file,https://www.googleapis.com/auth/calendar
+
+# Security
+FERNET_KEY=chave_fernet_para_encriptacao
+FRONTEND_URL=http://localhost:3000
 ```
 
-4. Execute as migrações (o SQLAlchemy criará as tabelas automaticamente):
+4. **Execute as migrações**
+
+O SQLAlchemy criará as tabelas automaticamente na primeira execução:
 
 ```bash
 poetry run python run.py
 ```
 
-## Como Executar
+## ▶️ Como Executar
 
-### Desenvolvimento
+### Modo de Desenvolvimento
 
-Execute o servidor de desenvolvimento com hot-reload:
+Execute o servidor com hot-reload para desenvolvimento:
 
 ```bash
 poetry run python run.py
 ```
 
-Ou diretamente com uvicorn:
+Ou diretamente via Uvicorn:
 
 ```bash
 poetry run uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-A API estará disponível em: `http://127.0.0.1:8000`
+A API estará acessível em: `http://127.0.0.1:8000`
 
 ### Documentação Interativa
 
-Após iniciar o servidor, acesse:
+Explore e teste a API diretamente pelo navegador:
 
-- Swagger UI: `http://127.0.0.1:8000/docs`
-- ReDoc: `http://127.0.0.1:8000/redoc`
+- **Swagger UI**: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+- **ReDoc**: [http://127.0.0.1:8000/redoc](http://127.0.0.1:8000/redoc)
 
-## Estrutura do Projeto
+## ☁️ Integração Google
+
+O sistema possui integração nativa com serviços do Google para potencializar a gestão das equipes:
+
+### 📅 Google Calendar
+Cada equipe pode ter seu próprio calendário compartilhado.
+- **Eventos de Equipe**: Agende treinos, reuniões e campeonatos.
+- **Sincronização**: Eventos criados no sistema aparecem automaticamente no Google Calendar da equipe.
+
+### 📁 Google Drive
+Organize documentos e mídias da equipe.
+- **Pastas de Equipe**: Criação automática de estrutura de pastas para cada equipe.
+- **Upload de Arquivos**: Armazenamento seguro de replays, estratégias e planilhas.
+
+## 📂 Estrutura do Projeto
 
 ```
 manager-api/
 ├── app/
-│   ├── api/
-│   │   ├── deps.py              # Dependências e middlewares
-│   │   └── v1/
-│   │       ├── auth.py          # Endpoints de autenticação
-│   │       ├── users.py         # Endpoints de usuários
-│   │       └── equipes.py       # Endpoints de equipes
-│   ├── core/
-│   │   ├── config.py            # Configurações da aplicação
-│   │   └── database.py          # Configuração do banco de dados
-│   ├── models/
-│   │   ├── base.py              # Modelo base
-│   │   ├── user.py              # Modelo de usuário
-│   │   ├── equipe.py            # Modelo de equipe
-│   │   ├── item.py              # Modelo de item
-│   │   └── transacao.py         # Modelo de transação
-│   ├── schemas/
-│   │   ├── user.py              # Schemas Pydantic de usuário
-│   │   ├── equipe.py            # Schemas Pydantic de equipe
-│   │   ├── item.py              # Schemas Pydantic de item
-│   │   └── transacao.py         # Schemas Pydantic de transação
-│   ├── services/
-│   │   ├── user_service.py      # Lógica de negócio de usuários
-│   │   └── equipe_service.py    # Lógica de negócio de equipes
-│   ├── utils/
-│   │   └── security.py          # Funções de segurança (hash, JWT)
-│   └── main.py                  # Aplicação FastAPI principal
-├── .env                         # Variáveis de ambiente
-├── pyproject.toml               # Configuração do Poetry
-├── run.py                       # Script para iniciar o servidor
-├── ENDPOINTS.md                 # Documentação detalhada dos endpoints
-└── README.md                    # Este arquivo
+│   ├── api/            # Endpoints da API (v1)
+│   ├── core/           # Configurações e conexão com DB
+│   ├── models/         # Modelos do SQLAlchemy (Tabelas)
+│   ├── schemas/        # Schemas do Pydantic (Validação)
+│   ├── services/       # Lógica de negócios
+│   ├── utils/          # Utilitários (Segurança, etc)
+│   └── main.py         # Entrypoint da aplicação
+├── .env_example        # Exemplo de variáveis de ambiente
+├── pyproject.toml      # Dependências do projeto
+└── run.py              # Script de execução
 ```
 
-## Principais Tecnologias
+## 💻 Tecnologias
 
-- **FastAPI** - Framework web moderno e rápido
-- **SQLAlchemy** - ORM para Python
-- **PostgreSQL** - Banco de dados relacional
-- **Pydantic** - Validação de dados e serialização
-- **Python-JOSE** - Criação e validação de tokens JWT
-- **Passlib & Bcrypt** - Hash de senhas
-- **Uvicorn** - Servidor ASGI de alta performance
+- **[FastAPI](https://fastapi.tiangolo.com/)**: Framework web moderno de alta performance.
+- **[SQLAlchemy](https://www.sqlalchemy.org/)**: ORM poderoso para Python.
+- **[Pydantic](https://docs.pydantic.dev/)**: Validação de dados robusta.
+- **[PostgreSQL](https://www.postgresql.org/)**: Banco de dados relacional confiável.
+- **[Poetry](https://python-poetry.org/)**: Gerenciamento de dependências e empacotamento.
 
-## Sistema de Permissões
+## 🔐 Permissões
 
-### Roles Disponíveis
+| Role | Descrição | Permissões |
+|------|-----------|------------|
+| **Administrador** | Acesso total | Gerenciar tudo: usuários, equipes, inventários e finanças. |
+| **Líder** | Gestor de Equipe | Gerenciar sua própria equipe, adicionar membros e ver dados da equipe. |
+| **Membro** | Usuário Básico | Visualizar dados da equipe, calendário, arquivos e editar próprio perfil. |
 
-1. **Administrador**
+## 🤝 Contribuição
 
-   - Acesso completo ao sistema
-   - Pode gerenciar todas as equipes e usuários
-   - Pode criar, editar e deletar qualquer recurso
+Contribuições são bem-vindas! Sinta-se à vontade para abrir issues ou enviar pull requests.
 
-2. **Líder**
+1. Faça um Fork do projeto
+2. Crie uma Branch para sua Feature (`git checkout -b feature/MinhaFeature`)
+3. Faça o Commit de suas mudanças (`git commit -m 'Adiciona MinhaFeature'`)
+4. Faça o Push para a Branch (`git push origin feature/MinhaFeature`)
+5. Abra um Pull Request
 
-   - Gerencia sua própria equipe
-   - Pode criar e editar membros da sua equipe
-   - Pode visualizar e editar dados da sua equipe
+## 📄 Licença
 
-3. **Membro**
-   - Acesso limitado aos próprios dados
-   - Pode visualizar informações da sua equipe
-   - Pode editar apenas seu email e senha
-
-## Principais Endpoints
-
-### Autenticação
-
-- `POST /api/v1/auth/login` - Fazer login
-
-### Usuários
-
-- `POST /api/v1/users/criar` - Criar usuário
-- `GET /api/v1/users/listarTudo` - Listar todos os usuários
-- `GET /api/v1/users/listar/{user_id}` - Obter usuário por ID
-- `PUT /api/v1/users/atualizar/{user_id}` - Atualizar usuário
-- `DELETE /api/v1/users/deletar/{user_id}` - Desativar usuário
-
-### Equipes
-
-- `POST /api/v1/equipes/criar` - Criar equipe
-- `GET /api/v1/equipes/listAll` - Listar todas as equipes
-- `GET /api/v1/equipes/listar/{equipe_id}` - Obter equipe por ID
-- `PUT /api/v1/equipes/atualizar/{equipe_id}` - Atualizar equipe
-- `DELETE /api/v1/equipes/deletar/{equipe_id}` - Deletar equipe
-- `GET /api/v1/equipes/{equipe_id}/membros` - Listar membros da equipe
-
-## Licença
-
-Este projeto está sob a licença especificada no arquivo [LICENSE](LICENSE).
+Este projeto está licenciado sob a licença MIT - veja o arquivo [LICENSE](LICENSE) para mais detalhes.
